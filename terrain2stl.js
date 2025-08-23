@@ -52,7 +52,7 @@ function initializeControls(){
 
 function initializeMap(){
   map = L.map('webmap').setView([44.191442, -69.074608], 6);
-
+  /*
   osmlayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     minZoom: 3,
     maxZoom: 13,
@@ -61,6 +61,36 @@ function initializeMap(){
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   })
   .addTo(map);
+  */
+
+	L.maplibreGL({
+		style: 'https://tiles.openfreemap.org/styles/bright',
+	}).addTo(map)
+
+
+	var url_to_geotiff_file = "https://hillshades.us-east-1.linodeobjects.com/srtm-hillshade-web-mercator-cog.tif"
+
+        // from https://github.com/GeoTIFF/georaster-layer-for-leaflet-example/blob/42c4d84b8734c6747cba7a0e221fc6f6d260f6f1/examples/load-cog-via-url-param.html#L43C1-L63C12
+        parseGeoraster(url_to_geotiff_file).then(georaster => {
+          /*
+              GeoRasterLayer is an extension of GridLayer,
+              which means can use GridLayer options like opacity.
+
+              Just make sure to include the georaster option!
+
+              http://leafletjs.com/reference-1.2.0.html#gridlayer
+          */
+          var layer = new GeoRasterLayer({
+              attribution: "jthatch.com SRTM hillshade",
+              georaster,
+              opacity: 0.2,
+              resolution: 512
+          });
+          layer.addTo(map);
+	  layer.getContainer().classList.add('georaster-hillshade');
+        });
+
+
 
   var c = map.getCenter()
   var rectCorners = rectanglePoints(c.lat, c.lng,boxWidth)
