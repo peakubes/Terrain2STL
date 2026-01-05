@@ -67,8 +67,7 @@ function initializeMap(){
 		style: 'https://tiles.openfreemap.org/styles/bright',
 	}).addTo(map)
 
-
-	var url_to_geotiff_file = "https://hillshades.us-east-1.linodeobjects.com/srtm-hillshade-web-mercator-cog.tif"
+	var url_to_geotiff_file = "https://hillshades.us-east-1.linodeobjects.com/srtm-hillshade-wm-cog-filled-q60.tif"
 
         // from https://github.com/GeoTIFF/georaster-layer-for-leaflet-example/blob/42c4d84b8734c6747cba7a0e221fc6f6d260f6f1/examples/load-cog-via-url-param.html#L43C1-L63C12
         parseGeoraster(url_to_geotiff_file).then(georaster => {
