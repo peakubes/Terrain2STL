@@ -317,7 +317,7 @@ function updateSelection(){
 
   var boxScale = scaleSlider.value;
   boxRotation = rotationSlider.value*Math.PI/180;
-  var _lat = Math.min(Math.max(parseFloat(document.getElementById('c-lat').value),-69),69);
+  var _lat = Math.min(Math.max(parseFloat(document.getElementById('c-lat').value),-69),84);
   var _lng = Math.min(Math.max(parseFloat(document.getElementById('c-lng').value),-179),180);
 
 
