@@ -100,7 +100,7 @@ function initializeMap(){
 	      opacity: 0.2,
 	      //opacity: 0.1,
 	      pixelValuesToColorFn: hillshadecolor,
-              resolution: 512
+	      resolution: 512
           });
           layer.addTo(map);
 	  layer.getContainer().classList.add('georaster-hillshade');
