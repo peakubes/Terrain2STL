@@ -75,7 +75,9 @@ function initializeMap(){
   */
 
 	L.maplibreGL({
-		style: 'https://tiles.openfreemap.org/styles/bright',
+		style: 'https://tiles.openfreemap.org/styles/liberty',
+		minZoom: 3,
+		maxZoom: 12
 	}).addTo(map)
 
 
