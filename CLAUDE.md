@@ -18,10 +18,12 @@ This compiles `src/elevstl.c`, `src/STLWriter.c`, `src/elevation.c` into `./cele
 
 ### Test the C binary directly
 ```sh
-./celevstl <lat> <lng> <width> <height> <vScale> <rotation_deg> <waterDrop_mm> <baseHeight_mm> <stepSize> <output.stl>
-# Example (Rockport harbor):
-./celevstl 44.1928 -69.0851 40 40 1.7 0 1 3 1 test.stl
+./celevstl <lat> <lng> <size> <vScale> <rotation_deg> <waterDrop_mm> <baseHeight_mm> <stepSize> <output.stl>
+# Example (Rockport harbor, center coordinates):
+./celevstl 44.1761 -69.0685 40 1.7 0 1 3 1 test.stl
 ```
+
+`lat`/`lng` is the **center** of the selection. `size` is the number of HGT cells in the north-south direction; the east-west cell count is computed automatically as `round(size / cos(lat))` so the STL is geometrically square.
 
 ### Install Node.js dependencies
 ```sh
