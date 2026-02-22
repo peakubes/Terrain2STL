@@ -88,13 +88,13 @@ int writeXStrip(FILE * file, float * lh, float * uh, int width, float xScale, fl
 }
 
 
-int main(int argc, char **argv)			//lat, long, size, verticalscale, rot, waterDrop, baseHeight, stepSize, outputname
-//size is in HGT cells (square)
+int main(int argc, char **argv)			//lat, long, size, verticalscale, rot, waterDrop, baseHeight, stepSize, outputsize_mm, outputname
+//size is in HGT cells (square); outputsize_mm sets the physical base side length in mm
 //rot is in degrees
 {
-	if(argc!=10){
-		printf("Got %d arguments, expected 9:\n", argc-1);
-		printf("%s lat long size verticalscale rot waterDrop baseHeight stepSize outputname\n", argv[0]);
+	if(argc!=11){
+		printf("Got %d arguments, expected 10:\n", argc-1);
+		printf("%s lat long size verticalscale rot waterDrop baseHeight stepSize outputsize_mm outputname\n", argv[0]);
 		return -1;
 	}
 	float lat;
@@ -127,7 +127,11 @@ int main(int argc, char **argv)			//lat, long, size, verticalscale, rot, waterDr
 
 	stepSize = atoi(argv[8]);
 
-	char * outputName = argv[9];
+	float outputsize = atof(argv[9]);		//physical base side length in mm
+	float outputScale = outputsize / (float)height;
+	printf("Output size: %.1f mm (scale: %.4f mm/cell)\n", outputsize, outputScale);
+
+	char * outputName = argv[10];
 
 	printf("Step size: %d units, width=%d height=%d\n", stepSize, width, height);
 
@@ -139,7 +143,10 @@ int main(int argc, char **argv)			//lat, long, size, verticalscale, rot, waterDr
 	globalLat = 3.1415926f * lat / 180.0f;
 	printf("NW corner: (%.6f N, %.6f E)\n", lat, lng);
 
-	float scaleFactor = (userscale/verticalscale) / ((float) stepSize);
+	// outputScale applied to all three axes for proportional scaling
+	float scaleFactor = (userscale/verticalscale) / ((float) stepSize) * outputScale;
+	int scaledWaterDrop  = (int)roundf(waterDrop  * outputScale);
+	int scaledBaseHeight = (int)roundf(baseHeight * outputScale);
 
 	////////////// Done with Argument Parsing //////////////////
 
@@ -161,40 +168,41 @@ int main(int argc, char **argv)			//lat, long, size, verticalscale, rot, waterDr
 	}
 	startSTLfile(stl, 4);
 
+	float xScale = cos(globalLat) * outputScale;
+
 	//get zeroth line
-	getElevationLine(nextline, width, -height, lat, lng, scaleFactor, rot, waterDrop,baseHeight, stepSize);
-	tris += writeLineWall(stl, nextline, width, cos(globalLat), -height, 0);
+	getElevationLine(nextline, width, -height, lat, lng, scaleFactor, rot, scaledWaterDrop, scaledBaseHeight, stepSize);
+	tris += writeLineWall(stl, nextline, width, xScale, -height * outputScale, 0);
 
 	for(int y = -height+1; y<=0; y++){
 		for(int x = 0; x<width; x++){
 			prevline[x] = nextline[x];
 		}
-		getElevationLine(nextline, width, y, lat, lng, scaleFactor, rot, waterDrop,baseHeight, stepSize);
-		tris += writeXStrip(stl, prevline, nextline, width, cos(globalLat), y-1, y);
+		getElevationLine(nextline, width, y, lat, lng, scaleFactor, rot, scaledWaterDrop, scaledBaseHeight, stepSize);
+		tris += writeXStrip(stl, prevline, nextline, width, xScale, (y-1) * outputScale, y * outputScale);
 		fflush(stl);
 	}
 
 	//write other x wall
-	tris += writeLineWall(stl, nextline, width, cos(globalLat), 0, 1);
+	tris += writeLineWall(stl, nextline, width, xScale, 0, 1);
 
 
 	// add in the bottom of the model
-	float xScale = cos(globalLat);
-	struct _vect3 o =  {10,-10, 0};
+	struct _vect3 o = {10 * outputScale, -10 * outputScale, 0};
 	for(int y = -height+1; y<=0; y++){
-		struct _vect3 lowerleft = {0,y-1, 0};
-		struct _vect3 upperleft = {0,y,   0};
-		struct _vect3 lowerright = {(width-1)*cos(globalLat),y-1, 0};
-		struct _vect3 upperright = {(width-1)*cos(globalLat),y,   0};
+		struct _vect3 lowerleft  = {0,                        (y-1) * outputScale, 0};
+		struct _vect3 upperleft  = {0,                          y   * outputScale, 0};
+		struct _vect3 lowerright = {(width-1)*xScale, (y-1) * outputScale, 0};
+		struct _vect3 upperright = {(width-1)*xScale,   y   * outputScale, 0};
 		addTriangle(stl, createTriangle(lowerleft,upperleft,o));
 		addTriangle(stl, createTriangle(upperright,lowerright,o));
 		tris += 2;
 	}
 	for(int x = 0; x<width-1; x++){
-		struct _vect3 upperleft =  {x*xScale,0, 0};
-		struct _vect3 upperright = {(x+1)*xScale,0,   0};
-		struct _vect3 lowerleft = {x*xScale,-height, 0};
-		struct _vect3 lowerright =  {(x+1)*xScale,-height,   0};
+		struct _vect3 upperleft  = {x*xScale,       0,                   0};
+		struct _vect3 upperright = {(x+1)*xScale,   0,                   0};
+		struct _vect3 lowerleft  = {x*xScale,      -height * outputScale, 0};
+		struct _vect3 lowerright = {(x+1)*xScale,  -height * outputScale, 0};
 		addTriangle(stl, createTriangle(upperleft,upperright,o));
 		addTriangle(stl, createTriangle(lowerright,lowerleft,o));
 		tris += 2;
