@@ -88,13 +88,13 @@ int writeXStrip(FILE * file, float * lh, float * uh, int width, float xScale, fl
 }
 
 
-int main(int argc, char **argv)			//lat, long, width, height, verticalscale, rot, waterDrop, baseHeight, stepSize, outputname
-//width and height are in units of steps or maybe degrees??
+int main(int argc, char **argv)			//lat, long, size, verticalscale, rot, waterDrop, baseHeight, stepSize, outputname
+//size is in HGT cells (square)
 //rot is in degrees
 {
-	if(argc!=11){
-		printf("Got %d arguments, expected 10:\n", argc-1);
-		printf("%s lat long width height verticalscale rot waterDrop baseHeight stepSize outputname\n", argv[0]);
+	if(argc!=10){
+		printf("Got %d arguments, expected 9:\n", argc-1);
+		printf("%s lat long size verticalscale rot waterDrop baseHeight stepSize outputname\n", argv[0]);
 		return -1;
 	}
 	float lat;
@@ -111,24 +111,33 @@ int main(int argc, char **argv)			//lat, long, width, height, verticalscale, rot
 	//old vertical scale was 23.2
 	float verticalscale = 92.7;			//true_verticalscale gives models that are too flat to be interesting
 
-	lat = atof(argv[1]);					//Latitude of NW corner
-	globalLat = 3.1415926*lat/180;
-	lng = atof(argv[2]);					//Longitude of NW corner
-	printf("'Northwest' coordinate: (%.6f N, %.6f E)\n", lat, lng);
-	width = atoi(argv[3]);
-	height = atoi(argv[4]);
-	userscale = atof(argv[5]);
-	rot = atof(argv[6]);
+	lat = atof(argv[1]);					//Latitude of center
+	lng = atof(argv[2]);					//Longitude of center
+	printf("Center coordinate: (%.6f N, %.6f E)\n", lat, lng);
+	height = atoi(argv[3]);
+	// Stretch width so the STL is geometrically square despite lat/lng distortion
+	float centerLatRad = 3.1415926f * lat / 180.0f;
+	width = (int)roundf((float)height / cosf(centerLatRad));
+	userscale = atof(argv[4]);
+	rot = atof(argv[5]);
 	rot = rot*PI/180;
 
-	waterDrop = atoi(argv[7]);
-	baseHeight = atoi(argv[8]);
+	waterDrop = atoi(argv[6]);
+	baseHeight = atoi(argv[7]);
 
-	stepSize = atoi(argv[9]);
+	stepSize = atoi(argv[8]);
 
-	char * outputName = argv[10];
+	char * outputName = argv[9];
 
-	printf("Step size: %d units\n", stepSize);
+	printf("Step size: %d units, width=%d height=%d\n", stepSize, width, height);
+
+	// Convert center coordinates to NW corner
+	float half_u = ((float)height / 2.0f) / 1200.0f * (float)stepSize;
+	float half_v = ((float)width  / 2.0f) / 1200.0f * (float)stepSize;
+	lat = lat + half_u * cos(rot) - half_v * sin(rot);
+	lng = lng - half_v * cos(rot) - half_u * sin(rot);
+	globalLat = 3.1415926f * lat / 180.0f;
+	printf("NW corner: (%.6f N, %.6f E)\n", lat, lng);
 
 	float scaleFactor = (userscale/verticalscale) / ((float) stepSize);
 
