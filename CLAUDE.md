@@ -66,3 +66,7 @@ The server must have `stls/` and `logs/` directories present before starting (it
 
 ### Configuration (`config.js`)
 Controls request and parameter logging; log files go to `logs/requests.log` and `logs/params.log`.
+
+## Repository
+- GitHub: https://github.com/peakubes/terrain2stl
+- Independent repo (not a fork), default branch: `main`
